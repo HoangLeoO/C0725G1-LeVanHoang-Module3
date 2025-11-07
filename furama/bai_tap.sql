@@ -158,6 +158,7 @@ having count(hd.ma_hop_dong) <= 3 ;
 
 
 -- 16 Xóa những Nhân viên chưa từng lập được hợp đồng nào từ năm 2019 đến năm 2021.
+SET SQL_SAFE_UPDATES = 0;
 delete nhan_vien from nhan_vien where ma_nhan_vien in 
 (
 select ma_nhan_vien from (
@@ -166,6 +167,7 @@ left join hop_dong hd on hd.ma_nhan_vien = nv.ma_nhan_vien and year(hd.ngay_lam_
 where hd.ma_hop_dong is null 
 ) as temp
 );
+SET SQL_SAFE_UPDATES = 1;
 
 -- 17 Cập nhật thông tin những khách hàng có ten_loai_khach từ Platinium lên Diamond, chỉ cập nhật những khách hàng đã từng đặt phòng với Tổng Tiền thanh toán trong năm 2021 là lớn hơn 10.000.000 VNĐ.
 update khach_hang kh set kh.ma_loai_khach = 1 where kh.ma_khach_hang in(
@@ -185,11 +187,22 @@ having sum((dv.chi_phi_thue + IFNULL(hdct.so_luong,0) * IFNULL(dvdk.gia,0))) > 1
 ;
 
 -- 18 Xóa những khách hàng có hợp đồng trước năm 2021 (chú ý ràng buộc giữa các bảng).
-select kh.ma_khach_hang ,hd.ma_hop_dong ,hd.ngay_lam_hop_dong from khach_hang kh 
-join hop_dong hd on hd.ma_khach_hang = kh.ma_khach_hang and year(hd.ngay_lam_hop_dong) < 2021;
+SET SQL_SAFE_UPDATES = 0;
+delete khach_hang from khach_hang  where khach_hang.ma_khach_hang  in (select temp.ma_khach_hang 
+from (
+select kh.ma_khach_hang  from khach_hang kh 
+join hop_dong hd on hd.ma_khach_hang = kh.ma_khach_hang where year(hd.ngay_lam_hop_dong) < 2021
+)
+as temp
+);
+SET SQL_SAFE_UPDATES = 1;
+
+
+
 
 -- 19 Cập nhật giá cho các dịch vụ đi kèm được sử dụng trên 10 lần trong năm 2020 lên gấp đôi.
-update dich_vu_di_kem  dvdk set dvdk.gia = (dvdk.gia*2) where dvdk.ma_dich_vu_di_kem = 
+SET SQL_SAFE_UPDATES = 0;
+update dich_vu_di_kem  dvdk set dvdk.gia = (dvdk.gia*2) where dvdk.ma_dich_vu_di_kem in 
 (
 select temp.ma_dich_vu_di_kem from (
 select dvdk.ma_dich_vu_di_kem as ma_dich_vu_di_kem , sum(hdct.so_luong) as so_luong_su_dung 
@@ -201,12 +214,91 @@ group by  dvdk.ma_dich_vu_di_kem
 having so_luong_su_dung > 10
 ) as temp
 );
-
-
+SET SQL_SAFE_UPDATES = 1;
 
 -- 20 Hiển thị thông tin của tất cả các nhân viên và khách hàng có trong hệ thống, thông tin hiển thị bao gồm id (ma_nhan_vien, ma_khach_hang), ho_ten, email, so_dien_thoai, ngay_sinh, dia_chi.
 select ma_khach_hang, ho_ten, email, so_dien_thoai, ngay_sinh, dia_chi from khach_hang 
 union all
 select ma_nhan_vien, ho_ten, email, so_dien_thoai, ngay_sinh, dia_chi from nhan_vien ;
 
+-- 21 Tạo khung nhìn có tên là v_nhan_vien để lấy được thông tin của tất cả các nhân viên có địa chỉ là “Hải Châu” và
+--  đã từng lập hợp đồng cho một hoặc nhiều khách hàng bất kì với ngày lập hợp đồng là “12/12/2019”.
+create view view_nhan_vien_yen_bai as select nv.* from nhan_vien nv
+join hop_dong hd on hd.ma_nhan_vien =  nv.ma_nhan_vien and hd.ngay_lam_hop_dong = '2021-04-25'
+where nv.dia_chi like '%Yên Bái%';
+-- 22 Thông qua khung nhìn v_nhan_vien thực hiện cập nhật địa chỉ thành “Liên Chiểu” đối với tất cả các nhân viên được nhìn thấy bởi khung nhìn này.
+UPDATE nhan_vien v
+SET dia_chi = 'Liên Chiểu'
+WHERE v.ma_nhan_vien IN (
+    SELECT temp.ma_nhan_vien 
+    FROM (
+        SELECT ma_nhan_vien 
+        FROM view_nhan_vien_yen_bai
+    ) AS temp
+);
 
+--  23 Tạo Stored Procedure sp_xoa_khach_hang dùng để xóa thông tin
+--  của một khách hàng nào đó với ma_khach_hang được truyền vào như là 1 tham số của sp_xoa_khach_hang.
+
+DELIMITER //
+create procedure sp_xoa_khach_hang( in id int )
+ begin
+delete khach_hang from khach_hang where ma_khach_hang = id;
+ end //
+DELIMITER ;
+call sp_xoa_khach_hang(1);
+
+-- 24 Tạo Stored Procedure sp_them_moi_hop_dong dùng để thêm mới vào bảng hop_dong với yêu cầu sp_them_moi_hop_dong phảithực hiện kiểm
+-- tra tính hợp lệ của dữ liệu bổ sung, với nguyên tắc không được trùng khóa chính và đảm bảo toàn vẹn tham chiếu đến các bảng liên quan.
+select * from hop_dong;
+select * from khach_hang;
+DELIMITER //
+create procedure sp_them_moi_hop_dong( in sp_tien_dat_coc double , in sp_ma_nhan_vien int ,in sp_ma_khach_hang int ,in sp_ma_dich_vu int )
+
+begin 
+declare id_ma_nhan_vien int;
+declare id_ma_khach_hang int;
+declare id_ma_dich_vu int;
+
+select ma_nhan_vien into id_ma_nhan_vien from nhan_vien where ma_nhan_vien = sp_ma_nhan_vien;
+select ma_khach_hang into id_ma_khach_hang from khach_hang where ma_khach_hang = sp_ma_khach_hang;
+select ma_dich_vu into id_ma_dich_vu from dich_vu where ma_dich_vu = sp_ma_dich_vu;
+
+if id_ma_nhan_vien is  null 
+then 
+select 'mã nhân viên không tồn tại!' as thong_bao;
+elseif id_ma_khach_hang is null 
+then
+select 'mã khach hang không tồn tại!' as thong_bao;
+elseif id_ma_dich_vu is null 
+then
+select 'mã dich vu không tồn tại!' as thong_bao;
+else 
+insert into hop_dong(ngay_lam_hop_dong, ngay_ket_thuc, tien_dat_coc, ma_nhan_vien, ma_khach_hang, ma_dich_vu)
+VALUES(now(),now(),sp_tien_dat_coc,sp_ma_nhan_vien,sp_ma_khach_hang,sp_ma_dich_vu);
+end if ;
+end //
+DELIMITER ;
+call sp_them_moi_hop_dong(-1000,2,2,6);
+drop procedure sp_them_moi_hop_dong;
+
+# Tạo Trigger có tên tr_xoa_hop_dong khi xóa bản ghi trong bảng hop_dong thì hiển thị tổng số lượng bản ghi còn lại có trong bảng hop_dong ra giao diện console của database.
+# Lưu ý: Đối với MySQL thì sử dụng SIGNAL hoặc ghi log thay cho việc ghi ở console.
+CREATE TRIGGER tr_xoa_hop_dong
+    AFTER DELETE ON hop_dong
+    FOR EACH ROW
+BEGIN
+    DECLARE cnt INT;
+
+    -- Đếm số bản ghi còn lại
+    SELECT COUNT(*) INTO cnt FROM hop_dong;
+
+    SIGNAL SQLSTATE '01000'
+    set
+        MESSAGE_TEXT = 'Thông báo' ;
+
+END;
+
+
+drop trigger tr_xoa_hop_dong;
+delete hop_dong from  hop_dong where ma_hop_dong = 2;
