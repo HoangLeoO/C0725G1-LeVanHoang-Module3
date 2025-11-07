@@ -33,9 +33,12 @@ CREATE TABLE nhan_vien (
     ma_vi_tri INT,
     ma_trinh_do INT,
     ma_bo_phan INT,
-    FOREIGN KEY (ma_vi_tri) REFERENCES vi_tri(ma_vi_tri),
-    FOREIGN KEY (ma_trinh_do) REFERENCES trinh_do(ma_trinh_do),
+    FOREIGN KEY (ma_vi_tri) REFERENCES vi_tri(ma_vi_tri)
+        ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (ma_trinh_do) REFERENCES trinh_do(ma_trinh_do)
+        ON DELETE SET NULL ON UPDATE CASCADE,
     FOREIGN KEY (ma_bo_phan) REFERENCES bo_phan(ma_bo_phan)
+        ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 -- 5. Bảng loại khách
@@ -56,6 +59,7 @@ CREATE TABLE khach_hang (
     email VARCHAR(45),
     dia_chi VARCHAR(45),
     FOREIGN KEY (ma_loai_khach) REFERENCES loai_khach(ma_loai_khach)
+        ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 -- 7. Bảng loại dịch vụ
@@ -83,8 +87,10 @@ CREATE TABLE dich_vu (
     mo_ta_tien_nghi_khac VARCHAR(45),
     dien_tich_ho_boi DOUBLE,
     so_tang INT,
-    FOREIGN KEY (ma_kieu_thue) REFERENCES kieu_thue(ma_kieu_thue),
+    FOREIGN KEY (ma_kieu_thue) REFERENCES kieu_thue(ma_kieu_thue)
+        ON DELETE SET NULL ON UPDATE CASCADE,
     FOREIGN KEY (ma_loai_dich_vu) REFERENCES loai_dich_vu(ma_loai_dich_vu)
+        ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 -- 10. Bảng hợp đồng
@@ -96,9 +102,12 @@ CREATE TABLE hop_dong (
     ma_nhan_vien INT,
     ma_khach_hang INT,
     ma_dich_vu INT,
-    FOREIGN KEY (ma_nhan_vien) REFERENCES nhan_vien(ma_nhan_vien),
-    FOREIGN KEY (ma_khach_hang) REFERENCES khach_hang(ma_khach_hang),
+    FOREIGN KEY (ma_nhan_vien) REFERENCES nhan_vien(ma_nhan_vien)
+        ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (ma_khach_hang) REFERENCES khach_hang(ma_khach_hang)
+        ON DELETE SET NULL ON UPDATE CASCADE,
     FOREIGN KEY (ma_dich_vu) REFERENCES dich_vu(ma_dich_vu)
+        ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 -- 11. Bảng dịch vụ đi kèm
@@ -116,8 +125,8 @@ CREATE TABLE hop_dong_chi_tiet (
     ma_hop_dong INT,
     ma_dich_vu_di_kem INT,
     so_luong INT,
-    FOREIGN KEY (ma_hop_dong) REFERENCES hop_dong(ma_hop_dong),
+    FOREIGN KEY (ma_hop_dong) REFERENCES hop_dong(ma_hop_dong)
+        ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (ma_dich_vu_di_kem) REFERENCES dich_vu_di_kem(ma_dich_vu_di_kem)
+        ON DELETE SET NULL ON UPDATE CASCADE
 );
-
-

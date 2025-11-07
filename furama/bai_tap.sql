@@ -290,7 +290,6 @@ CREATE TRIGGER tr_xoa_hop_dong
 BEGIN
     DECLARE cnt INT;
 
-    -- Đếm số bản ghi còn lại
     SELECT COUNT(*) INTO cnt FROM hop_dong;
 
     SIGNAL SQLSTATE '01000'
