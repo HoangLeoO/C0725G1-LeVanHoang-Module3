@@ -1,0 +1,142 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    color: #222;
+}
+
+/* ===== CONTAINER ===== */
+.container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ===== HEADER ===== */
+.header {
+    height: 8%;
+    background: #2c3e50;
+    color: white;
+    display: flex;
+    align-items: center;
+}
+
+.navbar a {
+    color: white;
+    text-decoration: none;
+    padding: 8px 12px;
+    display: inline-block;
+    transition: 0.3s;
+}
+
+.navbar a:hover {
+    background: #34495e;
+    border-radius: 4px;
+}
+.navbar .logo {
+    display: flex;             /* bật flexbox cho div cha */
+    justify-content: center;   /* căn giữa ngang */
+    align-items: center;       /* căn giữa dọc */
+    height: 100%;
+}
+
+.navbar .logo a {
+    text-decoration: none;     /* bỏ gạch chân */
+    color: white;              /* màu chữ */
+    font-weight: bold;         /* chữ in đậm nếu muốn */
+}
+
+/* ===== MAIN CONTENT ===== */
+.main {
+    flex: 1;
+    display: flex;
+}
+
+/* Sidebar trái */
+.main .col-2 {
+    background: #e0e0e0;
+    padding: 20px;
+}
+
+.main .col-2 .row {
+    flex-direction: column;
+}
+
+.main .col-2 .col-12 {
+    margin-bottom: 10px;
+    text-align: center;
+    font-weight: bold;
+}
+
+/* Phần nội dung chính */
+.content {
+    background: white;
+    padding: 30px;
+    overflow-y: auto;
+}
+
+.content h1 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+.content span {
+    color: #555;
+    line-height: 1.6;
+}
+
+/* Sidebar phải */
+.main .col-2:last-child {
+    background: #e0e0e0;
+    padding: 20px;
+    text-align: center;
+    font-weight: bold;
+}
+
+/* ===== FOOTER ===== */
+.footer {
+    background: #2c3e50;
+    color: white;
+    text-align: center;
+    height: 8%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ===== GRID ===== */
+.row {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.col-1  { flex: 0 0 calc(100% / 12 * 1);  max-width: calc(100% / 12 * 1); }
+.col-2  { flex: 0 0 calc(100% / 12 * 2);  max-width: calc(100% / 12 * 2); }
+.col-3  { flex: 0 0 calc(100% / 12 * 3);  max-width: calc(100% / 12 * 3); }
+.col-4  { flex: 0 0 calc(100% / 12 * 4);  max-width: calc(100% / 12 * 4); }
+.col-5  { flex: 0 0 calc(100% / 12 * 5);  max-width: calc(100% / 12 * 5); }
+.col-6  { flex: 0 0 calc(100% / 12 * 6);  max-width: calc(100% / 12 * 6); }
+.col-7  { flex: 0 0 calc(100% / 12 * 7);  max-width: calc(100% / 12 * 7); }
+.col-8  { flex: 0 0 calc(100% / 12 * 8);  max-width: calc(100% / 12 * 8); }
+.col-9  { flex: 0 0 calc(100% / 12 * 9);  max-width: calc(100% / 12 * 9); }
+.col-10 { flex: 0 0 calc(100% / 12 * 10); max-width: calc(100% / 12 * 10); }
+.col-11 { flex: 0 0 calc(100% / 12 * 11); max-width: calc(100% / 12 * 11); }
+.col-12 { flex: 0 0 calc(100% / 12 * 12); max-width: calc(100% / 12 * 12); }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .col-1, .col-2, .col-3, .col-4, .col-5,
+    .col-6, .col-7, .col-8, .col-9, .col-10,
+    .col-11, .col-12 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    .navbar {
+        text-align: center;
+    }
+}
