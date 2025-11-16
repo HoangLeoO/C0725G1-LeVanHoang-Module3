@@ -23,7 +23,7 @@
                 <th>stt</th>
                 <th>Ten</th>
                 <th>Gia</th>
-                <th>action</th>
+                <th colspan="2">action</th>
             </tr>
             <c:forEach items="${products}" var="product" varStatus="status">
                 <tr>
@@ -31,6 +31,7 @@
                     <td>${product.name}</td>
                     <td>${product.price}</td>
                     <td><a href="http://localhost:8080/products?action=edit&id=${product.id}">Edit</a></td>
+                    <td><a href="http://localhost:8080/products?action=delete&id=${product.id}">Delete</a></td>
                 </tr>
             </c:forEach>
         </table>
